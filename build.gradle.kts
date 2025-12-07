@@ -1,3 +1,5 @@
+import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
+
 plugins {
     java
     id("org.springframework.boot") version "3.5.7"
@@ -28,4 +30,20 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+tasks.named<BootBuildImage>("bootBuildImage") {
+    imageName.set("ghcr.io/andrewspeelman/${project.name}:${project.version}")
+
+    // Enable publishing in CI environment
+    if (System.getenv("CI") == "true") {
+        publish.set(true)
+        docker {
+            publishRegistry {
+                username.set(System.getenv("GITHUB_ACTOR"))
+                password.set(System.getenv("GITHUB_TOKEN"))
+                url.set("https://ghcr.io")
+            }
+        }
+    }
 }
